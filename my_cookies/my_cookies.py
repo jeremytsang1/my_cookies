@@ -40,6 +40,12 @@ def find_cookies(
     browser_name: str,
     cookiejar_function: Callable,
 ) -> list[Cookie]:
+    """
+    Return list of cookies from `domain_name` specified in `cookie_names`.
+
+    Cookies are extracted using the appropriate `browser_cookie3` `cookiejar_function`.
+    Returns empty list if can't find cookies or if number of cookies is not as expected.
+    """
     ERROR_COOKIEJAR_FUNCTION: str = "get cookie from {} failed"
     ERROR_COOKIE_COUNT: str = "{} found invalid number of cookies: {}"
 
@@ -63,8 +69,10 @@ def find_cookies(
 
 
 def print_cookies(leetcode_cookies: list[Cookie], browser_name: str) -> None:
-    # Print browser in case user runs multiple browsers and wants to know which one the
-    # cookies are actually coming from when troubleshooting.
+    """Print name of browser cookies are coming from and the resulting cookies."""
+
+    # Print the browser name on a separate line because the Elisp package separates
+    # cookies by line.
     print(f"Found cookies from {browser_name}")
     for c in leetcode_cookies:
         print(c.name, c.value)
