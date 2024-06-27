@@ -1,13 +1,15 @@
 """Retrieve leetcode cookies from Chrome with local keyring"""
 
 import sys
+from http.cookiejar import Cookie, CookieJar
+
 import browser_cookie3
 
 
 def main():
     """Print cookies."""
-    cookiejar = None
-    leetcode_com = "leetcode.com"
+    cookiejar: CookieJar | None = None
+    leetcode_com: str = "leetcode.com"
 
     try:
         cookiejar = browser_cookie3.chrome(domain_name=leetcode_com)
@@ -39,7 +41,7 @@ def main():
             print("get cookie from Microsoft Edge failed", file=sys.stderr)
             return
 
-    leetcode_cookies = list(
+    leetcode_cookies: list[Cookie] = list(
         filter(lambda c: c.name in ("LEETCODE_SESSION", "csrftoken"), cookiejar)
     )
 
