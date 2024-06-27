@@ -9,7 +9,8 @@ import browser_cookie3
 
 def main():
     """Print cookies."""
-
+    leetcode_com: str = "leetcode.com"
+    cookie_names: tuple[str, ...] = ("LEETCODE_SESSION", "csrftoken")
     browsers: dict[str, Callable] = {
         "Chrome": browser_cookie3.chrome,
         "Chromium": browser_cookie3.chromium,
@@ -21,26 +22,42 @@ def main():
     leetcode_cookies: list[Cookie] = []
 
     for item in browsers.items():
-        leetcode_cookies = find_cookies(*item)
-        if len(leetcode_cookies) == 2:  # Hardcoded. Same length as `cookie_names`.
+        leetcode_cookies = find_cookies(leetcode_com, cookie_names, *item)
+        if leetcode_cookies:
             print_cookies(leetcode_cookies)
             return
+
     print(
         "get cookie failed, make sure you have Chrome, Chromium, Brave, Firefox or Edge installed and login in LeetCode with one of them at least once."
     )
 
 
-def find_cookies(browser_name: str, cookiejar_function: Callable) -> list[Cookie]:
-    leetcode_com: str = "leetcode.com"
-    cookie_names: tuple[str, str] = ("LEETCODE_SESSION", "csrftoken")
+def find_cookies(
+    domain_name: str,
+    cookie_names: tuple[str, ...],
+    browser_name: str,
+    cookiejar_function: Callable,
+) -> list[Cookie]:
+    ERROR_COOKIEJAR_FUNCTION: str = "get cookie from {} failed"
+    ERROR_COOKIE_COUNT: str = "{} found invalid number of cookies: {}"
 
     try:
-        cookiejar: CookieJar = cookiejar_function(domain_name=leetcode_com)
+        cookiejar: CookieJar = cookiejar_function(domain_name=domain_name)
     except Exception:
-        print(f"get cookie from {browser_name} failed", file=sys.stderr)
+        print(ERROR_COOKIEJAR_FUNCTION.format(browser_name), file=sys.stderr)
         return []
 
-    return list(filter(lambda cookie: cookie.name in cookie_names, cookiejar))
+    leetcode_cookies: list[Cookie] = list(
+        filter(lambda cookie: cookie.name in cookie_names, cookiejar)
+    )
+
+    # Warn user if the cookie jar function succeeds but not return the expected number
+    # of cookies. Return an empty list to reflect this failure to find the cookies.
+    if len(leetcode_cookies) != len(cookie_names):
+        print(ERROR_COOKIE_COUNT.format(browser_name, len(leetcode_cookies)))
+        return []
+
+    return leetcode_cookies
 
 
 def print_cookies(leetcode_cookies: list[Cookie]) -> None:
