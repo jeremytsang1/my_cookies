@@ -2,55 +2,48 @@
 
 import sys
 from http.cookiejar import Cookie, CookieJar
+from typing import Callable
 
 import browser_cookie3
 
 
 def main():
     """Print cookies."""
-    cookiejar: CookieJar | None = None
-    leetcode_com: str = "leetcode.com"
 
-    try:
-        cookiejar = browser_cookie3.chrome(domain_name=leetcode_com)
-    except Exception:
-        print("get cookie from Chrome failed", file=sys.stderr)
+    browsers: dict[str, Callable] = {
+        "Chrome": browser_cookie3.chrome,
+        "Chromium": browser_cookie3.chromium,
+        "Brave": browser_cookie3.brave,
+        "Firefox": browser_cookie3.firefox,
+        "Microsoft Edge": browser_cookie3.edge,
+    }
 
-    if not cookiejar:
-        try:
-            cookiejar = browser_cookie3.chromium(domain_name=leetcode_com)
-        except Exception:
-            print("get cookie from Chromium failed", file=sys.stderr)
+    leetcode_cookies: list[Cookie] = []
 
-    if not cookiejar:
-        try:
-            cookiejar = browser_cookie3.brave(domain_name=leetcode_com)
-        except Exception:
-            print("get cookie from Brave failed", file=sys.stderr)
-
-    if not cookiejar:
-        try:
-            cookiejar = browser_cookie3.firefox(domain_name=leetcode_com)
-        except Exception:
-            print("get cookie from Firefox failed", file=sys.stderr)
-
-    if not cookiejar:
-        try:
-            cookiejar = browser_cookie3.edge(domain_name=leetcode_com)
-        except Exception:
-            print("get cookie from Microsoft Edge failed", file=sys.stderr)
+    for item in browsers.items():
+        leetcode_cookies = find_cookies(*item)
+        if len(leetcode_cookies) == 2:  # Hardcoded. Same length as `cookie_names`.
+            print_cookies(leetcode_cookies)
             return
-
-    leetcode_cookies: list[Cookie] = list(
-        filter(lambda c: c.name in ("LEETCODE_SESSION", "csrftoken"), cookiejar)
+    print(
+        "get cookie failed, make sure you have Chrome, Chromium, Brave, Firefox or Edge installed and login in LeetCode with one of them at least once."
     )
 
-    if len(leetcode_cookies) < 2:
-        print(
-            "get cookie failed, make sure you have Chrome, Chromium, Brave, Firefox or Edge installed and login in LeetCode with one of them at least once."
-        )
-        return
 
+def find_cookies(browser_name: str, cookiejar_function: Callable) -> list[Cookie]:
+    leetcode_com: str = "leetcode.com"
+    cookie_names: tuple[str, str] = ("LEETCODE_SESSION", "csrftoken")
+
+    try:
+        cookiejar: CookieJar = cookiejar_function(domain_name=leetcode_com)
+    except Exception:
+        print(f"get cookie from {browser_name} failed", file=sys.stderr)
+        return []
+
+    return list(filter(lambda cookie: cookie.name in cookie_names, cookiejar))
+
+
+def print_cookies(leetcode_cookies: list[Cookie]) -> None:
     for c in leetcode_cookies:
         print(c.name, c.value)
 
