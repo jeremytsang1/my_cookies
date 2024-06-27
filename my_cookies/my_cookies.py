@@ -21,10 +21,12 @@ def main():
 
     leetcode_cookies: list[Cookie] = []
 
-    for item in browsers.items():
-        leetcode_cookies = find_cookies(leetcode_com, cookie_names, *item)
+    for browser_name, cookiejar_function in browsers.items():
+        leetcode_cookies = find_cookies(
+            leetcode_com, cookie_names, browser_name, cookiejar_function
+        )
         if leetcode_cookies:
-            print_cookies(leetcode_cookies)
+            print_cookies(leetcode_cookies, browser_name)
             return
 
     print(
@@ -60,7 +62,10 @@ def find_cookies(
     return leetcode_cookies
 
 
-def print_cookies(leetcode_cookies: list[Cookie]) -> None:
+def print_cookies(leetcode_cookies: list[Cookie], browser_name: str) -> None:
+    # Print browser in case user runs multiple browsers and wants to know which one the
+    # cookies are actually coming from when troubleshooting.
+    print(f"Found cookies from {browser_name}")
     for c in leetcode_cookies:
         print(c.name, c.value)
 
